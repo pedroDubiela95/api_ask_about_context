@@ -1,1 +1,6 @@
 .venv
+*.bin
+*.jpeg
+*.jpg
+*.pdf
+*.sqlite3

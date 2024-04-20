@@ -23,10 +23,13 @@ class AskAboutContext:
     """
 
     def __init__(self, 
-                 key: str, 
-                 file_path_context: str, 
+                 key:str, 
+                 file_path_context:str,
+                 file_path_db:str,
                  embedding_model_name:str = "text-embedding-ada-002", 
-                 model_name:str           = "gpt-3.5-turbo") -> None:
+                 model_name:str           = "gpt-3.5-turbo",
+                 there_is_vector_database = False) -> None:
+        
         """
         Initializes an instance of the AskAboutContext class.
 
@@ -34,16 +37,22 @@ class AskAboutContext:
         :type key: str
         :param file_path_context: Path to the context file
         :type file_path_context: str
+        :param file_path_db: Path to save the vector database
+        :type file_path_db: str
         :param embedding_model_name: Name of the embedding model to perform embedding, defaults to "text-embedding-ada-002"
         :type embedding_model_name: str, optional
         :param model_name: Name of the LLM model that will respond to questions, defaults to "gpt-3.5-turbo"
         :type model_name: str, optional
+        :param there_is_vector_database: If already there is a vector database in disk
+        :type there_is_vector_database: boolean, optional
         """
 
-        self.__key                  = key
-        self.__file_path_context    = file_path_context  
-        self.__embedding_model_name = embedding_model_name 
-        self.__model_name           = model_name 
+        self.__key                      = key
+        self.__file_path_context        = file_path_context
+        self.__file_path_db             = file_path_db   
+        self.__embedding_model_name     = embedding_model_name 
+        self.__model_name               = model_name 
+        self.__there_is_vector_database = there_is_vector_database 
         
         
     def __document_loading(self) -> str:
@@ -84,18 +93,32 @@ class AskAboutContext:
         Finally, it stores these embeddings and their respective chunks in a database, 
         using the vectors themselves as indexes, resulting in an embedding space.
 
+        When the vector database already exists on disk, it just loads it
+
         :return: Vector space
         :rtype: Chroma
         """
 
-        embeddings = OpenAIEmbeddings(
+        self.__embedding_funtion = OpenAIEmbeddings(
             openai_api_key = self.__key , 
             model          = self.__embedding_model_name
-        )
-        vectordb = Chroma.from_documents(
-            documents         = self.__tokenization(), 
-            embedding         = embeddings,
             )
+        
+        persist_directory = self.__file_path_db 
+        
+        # Load    
+        if self.__there_is_vector_database:
+            vectordb = Chroma(
+                persist_directory  = persist_directory,
+                embedding_function = self.__embedding_funtion,
+            )
+
+        # Create
+        else:
+            vectordb = Chroma.from_documents(
+                documents         = self.__tokenization(), 
+                embedding         = self.__embedding_funtion,
+                persist_directory = persist_directory)
 
         return vectordb 
 
@@ -104,8 +127,7 @@ class AskAboutContext:
         """
         Executes all the necessary pipeline steps to have the vector space ready.
         """
-
-        self.__vectordb  = self.__embeddings()
+        self.__vectordb = self.__embeddings()
 
 
     def query(self, query:str) -> str:
@@ -133,3 +155,29 @@ class AskAboutContext:
 
         with get_openai_callback() as cb:
             return chain.run(input_documents = docs, question = query)
+        
+if __name__ == "__main__":
+
+    # Constants
+    OPENAI_API_KEY               = os.environ.get("OPENAI_API_KEY") 
+    PATH_TO_SAVE_UPLOAD          = os.environ.get("PATH_TO_SAVE_UPLOAD") 
+    PATH_TO_SAVE_VECTOR_DATABASE = os.environ.get("PATH_TO_SAVE_VECTOR_DATABASE") 
+    PATH_TO_SAVE_MODEL           = os.environ.get("PATH_TO_SAVE_MODEL") 
+
+    # chatgpt
+    model = AskAboutContext(
+        key               = OPENAI_API_KEY, 
+        file_path_context = PATH_TO_SAVE_UPLOAD + "/" + "precos.jpg",
+        file_path_db      = PATH_TO_SAVE_VECTOR_DATABASE)
+    model.fit() 
+
+    model.query("Qual modelo é mais caro?")
+
+    model2 = AskAboutContext(
+        key               = OPENAI_API_KEY, 
+        file_path_context = PATH_TO_SAVE_UPLOAD + "/" + "precos.jpg",
+        file_path_db      = PATH_TO_SAVE_VECTOR_DATABASE,
+        there_is_vector_database=True)
+    model2.fit() 
+
+    model2.query("Qual modelo é mais caro?")
