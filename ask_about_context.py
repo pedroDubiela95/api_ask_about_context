@@ -175,9 +175,9 @@ if __name__ == "__main__":
 
     # Load vector databse
     model2 = AskAboutContext(
-        key               = OPENAI_API_KEY, 
-        file_path_db      = PATH_TO_SAVE_VECTOR_DATABASE,
-        there_is_vector_database=True)
+        key                      = OPENAI_API_KEY, 
+        file_path_db             = PATH_TO_SAVE_VECTOR_DATABASE,
+        there_is_vector_database =True)
     model2.fit() 
 
     model2.query("Qual modelo é mais barato?")
