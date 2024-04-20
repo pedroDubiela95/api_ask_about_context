@@ -1,0 +1,4 @@
+import os
+
+PATH_TO_SAVE_UPLOAD          = os.environ.get("PATH_TO_SAVE_UPLOAD") 
+PATH_TO_SAVE_VECTOR_DATABASE = os.environ.get("PATH_TO_SAVE_VECTOR_DATABASE") 

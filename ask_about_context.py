@@ -24,8 +24,8 @@ class AskAboutContext:
 
     def __init__(self, 
                  key:str, 
-                 file_path_context:str,
                  file_path_db:str,
+                 file_path_context:str    = None,
                  embedding_model_name:str = "text-embedding-ada-002", 
                  model_name:str           = "gpt-3.5-turbo",
                  there_is_vector_database = False) -> None:
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     PATH_TO_SAVE_VECTOR_DATABASE = os.environ.get("PATH_TO_SAVE_VECTOR_DATABASE") 
     PATH_TO_SAVE_MODEL           = os.environ.get("PATH_TO_SAVE_MODEL") 
 
-    # chatgpt
+    # Create vector database
     model = AskAboutContext(
         key               = OPENAI_API_KEY, 
         file_path_context = PATH_TO_SAVE_UPLOAD + "/" + "precos.jpg",
@@ -173,11 +173,11 @@ if __name__ == "__main__":
 
     model.query("Qual modelo é mais caro?")
 
+    # Load vector databse
     model2 = AskAboutContext(
         key               = OPENAI_API_KEY, 
-        file_path_context = PATH_TO_SAVE_UPLOAD + "/" + "precos.jpg",
         file_path_db      = PATH_TO_SAVE_VECTOR_DATABASE,
         there_is_vector_database=True)
     model2.fit() 
 
-    model2.query("Qual modelo é mais caro?")
+    model2.query("Qual modelo é mais barato?")
