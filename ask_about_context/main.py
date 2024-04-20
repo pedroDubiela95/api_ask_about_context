@@ -124,8 +124,8 @@ class AskAboutContext:
 
         docs  = self.__vectordb.max_marginal_relevance_search(
             query, 
-            k      = 5 , 
-            fetch_k= 2)
+            k      = 2, 
+            fetch_k= 5)
 
         # Question Answering
         llm   = ChatOpenAI(openai_api_key = self.__key, model_name = self.__model_name, temperature = 0)
