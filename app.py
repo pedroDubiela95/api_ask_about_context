@@ -8,18 +8,21 @@ from env import (
     PATH_TO_SAVE_VECTOR_DATABASE,
 )
 
+import warnings
+warnings.filterwarnings("ignore")
 #------------------------------------ Main--------------------------------#
 app = Flask(__name__)
 
 # Endpoint - Uploads
 @app.route('/uploads', methods=['POST'])
-def upload_file(openai_api_key:str) -> str:
+def upload_file() -> str:
 
     # Check if there is a file in request
     if 'file' not in request.files:
         return jsonify({'error': 'No file sent'}), 400
 
-    file = request.files['file']
+    openai_api_key = request.form['openai_api_key']
+    file           = request.files['file']
 
     # Clean
     delete_files_and_subdirectories(PATH_TO_SAVE_UPLOAD)
@@ -35,11 +38,15 @@ def upload_file(openai_api_key:str) -> str:
         file_path_db      = PATH_TO_SAVE_VECTOR_DATABASE)
     model.fit() 
 
-    return jsonify({'message': f"Contexto inserido com sucesso {file.filename}"}), 200
+    return jsonify({'message': f"Vector database created successfully"}), 200
 
 # Endpoint - Query
 @app.route('/query', methods=['GET'])
-def query(openai_api_key:str, query:List[str]) -> List[str]:
+def query() -> List[str]:
+
+    openai_api_key = request.form['openai_api_key']
+    query          = request.form['query']
+    query          = [q.strip() for q in query.split(";")]
 
     # Load model
     model = AskAboutContext(
@@ -59,6 +66,6 @@ def query(openai_api_key:str, query:List[str]) -> List[str]:
             )
         )
 
-
-app.run(port=5000)
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
 #------------------------------------ Main--------------------------------#
