@@ -23,6 +23,7 @@ data={
     }
 output = requests.get(url, data=data)
 result = output.json()
+print(result)
 
 
 
